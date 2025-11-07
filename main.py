@@ -4,7 +4,6 @@ import secrets
 from modules.camera import Camera
 from modules.drawing import draw_frame
 from modules.position import Position
-# from tensorflow.keras.models import load_model
 import numpy as np
 import time
 import json  
@@ -22,24 +21,23 @@ settings = config['camera']
 
 os.system('cls')
 print("Performing setup...")
-camera = Camera()
-
-
-
-print("Loading model...", end="\r")
-# model = load_model("model.h5")
-print("Model loaded.          ")
+camera = Camera(settings)
 
 print("Setting up board -> ", end="")
 board = Position(config['stockfish']['path'])
-print("Board initialized.                       ")
+print("Board initialized.                          ")
 
 
 print("Setup complete.")
 
+def process():
+    board.process_position(camera)
+
+keyboard.add_hotkey('space', process)
+
 while True:
     frame = camera.get_frame()
-    frame = draw_frame(frame, settings, board.get_position())
+    frame = draw_frame(frame, settings, board.get_position(), board)
 
     #show frame
     cv2.imshow('SCHACK', frame)

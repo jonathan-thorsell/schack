@@ -1,7 +1,8 @@
 import cv2
 import numpy as np
+import chess
 
-def draw_frame(frame: np.ndarray, settings: dict, board):
+def draw_frame(frame: np.ndarray, settings: dict, board, engine):
     #draw 8x8 grid
     step = settings['width'] // 8
     for i in range(9):
@@ -24,7 +25,7 @@ def draw_frame(frame: np.ndarray, settings: dict, board):
         (tw, th), baseline = cv2.getTextSize(char, font, scale, thickness)
         text_x = int(cx - tw / 2)
         text_y = int(cy + th / 2)
-        color = (255, 255, 255) if char.isupper() else (100, 100, 100)
+        color = (255,255,255) if str.upper(char) else (100,100,100)
         cv2.putText(frame, char, (text_x, text_y), font, scale, color, thickness, cv2.LINE_AA)
 
 
