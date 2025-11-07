@@ -34,6 +34,14 @@ keyboard.add_hotkey('shift+left', lambda: change_width(-1))
 keyboard.add_hotkey('right', lambda: change_width(10))
 keyboard.add_hotkey('shift+right', lambda: change_width(1))
 
+print("Camera Calibration".center(22))
+print("----------------------")
+print("Press 'a'/'d' to move left/right")
+print("Press 'w'/'s' to move up/down")
+print("Press 'left'/'right' to resize")
+print("Use 'shift' for finer adjustments")
+print("Press 'q' to quit")
+
 while True:
     frame = camera.get_frame()
 
