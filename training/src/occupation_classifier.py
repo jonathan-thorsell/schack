@@ -105,13 +105,21 @@ def build_model():
     return model
 
 # --- Evaluation ---
-def evaluate_model(model, X_test, y_test):
-    print("🔍 Evaluating model...")
-    loss, accuracy = model.evaluate(X_test, y_test)
-    print(f"📉 Loss: {loss:.4f}, 🎯 Accuracy: {accuracy:.4f}")
+def evaluate_model(model, *_):
+    print("🔍 Loading test data...")
+    X_test, y_test = load_data(TEST_FOLDER, augment=False)
+    if len(X_test) == 0:
+        print("⚠️ No test samples found.")
+        return
 
-    y_pred = (model.predict(X_test) > 0.5).astype(int).flatten()
-    print("\n📊 Classification report:")
+    print(f"🧪 Testing samples: {len(X_test)}")
+    print("🔍 Evaluating model on test set...")
+    loss, accuracy = model.evaluate(X_test, y_test, verbose=0)
+    print(f"📉 Test Loss: {loss:.4f}, 🎯 Test Accuracy: {accuracy:.4f}")
+
+    y_prob = model.predict(X_test, verbose=0).ravel()
+    y_pred = (y_prob > 0.5).astype(int)
+    print("\n📊 Classification report (test set):")
     print(classification_report(y_test, y_pred, target_names=["empty", "occupied"]))
 
 # --- Main ---
