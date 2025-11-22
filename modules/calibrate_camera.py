@@ -4,8 +4,6 @@ import keyboard
 from camera import Camera
 import json
 
-camera = Camera()
-
 with open('config.json', 'r') as f:
     config = json.load(f).get('camera', {})
 
@@ -42,6 +40,8 @@ print("Press 'left'/'right' to resize")
 print("Use 'shift' for finer adjustments")
 print("Press 'q' to quit")
 
+camera = Camera(config,0)
+
 while True:
     frame = camera.get_frame()
 
@@ -55,7 +55,16 @@ while True:
 cv2.destroyAllWindows()
 
 with open('config.json', 'w') as f:
-    json.dump({"camera": config}, f, indent=4)
+    try:
+        with open('config.json', 'r') as f:
+            full = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        full = {}
+
+    full['camera'] = config
+
+    with open('config.json', 'w') as f:
+        json.dump(full, f, indent=4)
 
 
 print("Calibration complete. Settings saved to config.json.")

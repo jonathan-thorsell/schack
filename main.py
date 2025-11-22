@@ -21,11 +21,13 @@ settings = config['camera']
 
 os.system('cls')
 print("Performing setup...")
-camera = Camera(settings)
-
 print("Setting up board -> ", end="")
-board = Position(config['stockfish']['path'])
+board = Position(config['stockfish']['path'], config["engine"]["process_type"])
 print("Board initialized.                          ")
+
+camera = Camera(settings, 0)
+
+
 
 
 print("Setup complete.")

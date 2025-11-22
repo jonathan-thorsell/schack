@@ -25,7 +25,7 @@ def draw_frame(frame: np.ndarray, settings: dict, board, engine):
         (tw, th), baseline = cv2.getTextSize(char, font, scale, thickness)
         text_x = int(cx - tw / 2)
         text_y = int(cy + th / 2)
-        color = (255,255,255) if str.isupper(char) else (100,100,100)
+        color = (255,255,255) if (str.isupper(char) or char=='#') else (100,100,100)
         cv2.putText(frame, str.lower(char), (text_x, text_y), font, scale, color, thickness, cv2.LINE_AA)
 
 
