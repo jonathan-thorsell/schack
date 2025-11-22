@@ -1,13 +1,19 @@
 {
-    "camera": {
-        "width": 441,
-        "x": 73,
-        "y": 24
-    },
-    "stockfish": {
-        "path": "C:/Users/erik/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2.exe"
-    },
+    "debug": true,
+
+    "show_grid_lines": true,
+
     "engine": {
         "process_type": 1
+    },
+
+    "camera": {
+        "width": 231,
+        "x": 211,
+        "y": 85
+    },
+
+    "stockfish": {
+        "path": "C:/Users/erik/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2.exe"
     }
 }

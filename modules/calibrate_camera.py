@@ -5,19 +5,19 @@ from camera import Camera
 import json
 
 with open('config.json', 'r') as f:
-    config = json.load(f).get('camera', {})
+    config = json.load(f)
+    camera_config = config.get('camera', {})
 
-config.setdefault('width', 500)
-config.setdefault('x', 10)
-config.setdefault('y', 10)
-
+camera_config.setdefault('width', 500)
+camera_config.setdefault('x', 10)
+camera_config.setdefault('y', 10)
 def change_x(val):
-    config['x'] += val
+    camera_config['x'] += val
 def change_y(val):
-    config['y'] += val
+    camera_config['y'] += val
 def change_width(val):
-    config['width'] += val
-    config['width'] = max(1, config['width'])
+    camera_config['width'] += val
+    camera_config['width'] = max(1, camera_config['width'])
 
 keyboard.add_hotkey('a', lambda: change_x(-10))
 keyboard.add_hotkey('shift+a', lambda: change_x(-1))
@@ -40,13 +40,13 @@ print("Press 'left'/'right' to resize")
 print("Use 'shift' for finer adjustments")
 print("Press 'q' to quit")
 
-camera = Camera(config,0)
+camera = Camera(camera_config,0)
 
 while True:
     frame = camera.get_frame()
 
-    square_frame = frame[config['y']:config['y']+config['width'], config['x']:config['x']+config['width']]
-    cv2.rectangle(frame, (config['x'], config['y']), (config['x'] + config['width'], config['y'] + config['width']), (255, 0, 0), 1)
+    square_frame = frame[camera_config['y']:camera_config['y']+camera_config['width'], camera_config['x']:camera_config['x']+camera_config['width']]
+    cv2.rectangle(frame, (camera_config['x'], camera_config['y']), (camera_config['x'] + camera_config['width'], camera_config['y'] + camera_config['width']), (255, 0, 0), 1)
 
     cv2.imshow('Camera Calibration', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -54,17 +54,9 @@ while True:
 
 cv2.destroyAllWindows()
 
+config['camera'] = camera_config
 with open('config.json', 'w') as f:
-    try:
-        with open('config.json', 'r') as f:
-            full = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        full = {}
-
-    full['camera'] = config
-
-    with open('config.json', 'w') as f:
-        json.dump(full, f, indent=4)
+    json.dump(config, f, indent=4)
 
 
 print("Calibration complete. Settings saved to config.json.")

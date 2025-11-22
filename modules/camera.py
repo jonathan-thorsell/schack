@@ -22,14 +22,19 @@ class Camera:
     def get_processed_frame(self):
         frame = self.get_frame()
         cropped_frame = frame[self.settings['y']:self.settings['y'] + self.settings['width'], self.settings['x']:self.settings['x'] + self.settings['width']]
-        square_size = self.settings['width'] // 8
+        square_size = self.settings['width'] / 8
         squares = []
         for row in range(8):
             for col in range(8):
-                y_start = row * square_size
-                x_start = col * square_size
-                square = cropped_frame[y_start:y_start + square_size, x_start:x_start + square_size]
+                y_start = int(row * square_size)
+                x_start = int(col * square_size)
+                square = cropped_frame[y_start:y_start + int(square_size), x_start:x_start + int(square_size)]
                 squares.append(square)
+                # window_name = f"square_{row}_{col}"
+                # cv2.imshow(window_name, square)
+                # # show each square for 200 ms (adjust as needed)
+                # cv2.waitKey(750)
+                # cv2.destroyWindow(window_name)
         return squares
 
     def focus(self, autofocus=True, value=None, wait=0.2):

@@ -33,15 +33,17 @@ camera = Camera(settings, 0)
 print("Setup complete.")
 
 def process():
-    board.process_position(camera)
+    board.process_position(camera, config["debug"])
 
 keyboard.add_hotkey('space', process)
 keyboard.add_hotkey('r', camera.focus)
 
 while True:
     frame = camera.get_frame()
-    frame, shouldProcess = draw_frame(frame, settings, board.get_position(), board)
+    frame, shouldProcess = draw_frame(frame, config, board.get_position(), board)
 
+    # if shouldProcess:
+    #     process()
     #show frame
     cv2.imshow('SCHACK', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):

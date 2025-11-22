@@ -80,8 +80,9 @@ class Position:
         self.board.turn = chess.WHITE
         return any(m.from_square == square_index for m in self.board.pseudo_legal_moves)
 
-    def process_position(self, camera: Camera):
-        print("processing began")
+    def process_position(self, camera: Camera, debug=False):
+        if debug:
+            print("processing began")
         squares = camera.get_processed_frame()
         # self.board.turn = chess.WHITE # gotta do this to make the legal moves work, weird right?
 
@@ -111,7 +112,7 @@ class Position:
 
         npsquares = np.asarray(processed_square_images, dtype=np.float32)
 
-        predictions = self.occupation_model.predict(npsquares)
+        predictions = self.occupation_model.predict(npsquares, verbose = 1 if debug else 0)
         predicted_labels = (predictions > 0.5).astype(int).flatten()
 
         occupied_squares = [i for i, label in enumerate(predicted_labels) if label == 1]
@@ -120,7 +121,7 @@ class Position:
             occupied_idxs = [i for i, label in enumerate(predicted_labels) if label == 1]
             if len(occupied_idxs) > 0:
                 occupied_images = npsquares[occupied_idxs]
-                color_preds = self.color_model.predict(occupied_images)
+                color_preds = self.color_model.predict(occupied_images, verbose = 1 if debug else 0)
 
                 # Handle both single-output (sigmoid) and two-output (softmax) models
                 if color_preds.ndim == 1 or (hasattr(color_preds, "shape") and color_preds.shape[1] == 1):
@@ -159,4 +160,5 @@ class Position:
                 #update self.num_array_position
                 for index, label in enumerate(predicted_labels):
                     self.num_array_position[processed_square_indices[index]] = label
-        print("predictions complete.")
+        if debug:
+            print("predictions complete.")
