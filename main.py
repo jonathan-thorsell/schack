@@ -36,10 +36,11 @@ def process():
     board.process_position(camera)
 
 keyboard.add_hotkey('space', process)
+keyboard.add_hotkey('r', camera.focus)
 
 while True:
     frame = camera.get_frame()
-    frame = draw_frame(frame, settings, board.get_position(), board)
+    frame, shouldProcess = draw_frame(frame, settings, board.get_position(), board)
 
     #show frame
     cv2.imshow('SCHACK', frame)

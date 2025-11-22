@@ -51,7 +51,8 @@ class Position:
         self.engine = chess.engine.SimpleEngine.popen_uci(path)
 
         print('Loading model...', end="\r")
-        self.model = load_model(r"training\models\occupation_classifier.keras")
+        self.occupation_model = load_model(r"training\models\occupation_classifier.keras")
+        self.color_model = load_model(r"training\models\color_classifier.keras")
 
         self.board = chess.Board()
         self.process_type = process_type
@@ -72,7 +73,7 @@ class Position:
                     case 1:
                         chars.append('#')  # black piece
                     case 2:
-                        chars.append('P')  # white piece
+                        chars.append('%')  # white piece
             return chars
 
     def piece_can_move(self, square_index):
@@ -110,8 +111,30 @@ class Position:
 
         npsquares = np.asarray(processed_square_images, dtype=np.float32)
 
-        predictions = self.model.predict(npsquares)
+        predictions = self.occupation_model.predict(npsquares)
         predicted_labels = (predictions > 0.5).astype(int).flatten()
+
+        occupied_squares = [i for i, label in enumerate(predicted_labels) if label == 1]
+        if len(occupied_squares) > 0:
+            # determine color for occupied squares and convert labels to 0=empty, 1=black, 2=white
+            occupied_idxs = [i for i, label in enumerate(predicted_labels) if label == 1]
+            if len(occupied_idxs) > 0:
+                occupied_images = npsquares[occupied_idxs]
+                color_preds = self.color_model.predict(occupied_images)
+
+                # Handle both single-output (sigmoid) and two-output (softmax) models
+                if color_preds.ndim == 1 or (hasattr(color_preds, "shape") and color_preds.shape[1] == 1):
+                    whites = (color_preds.flatten() > 0.5)
+                else:
+                    whites = np.argmax(color_preds, axis=1) == 1
+
+                # Build final integer labels: 0 empty, 1 black, 2 white
+                final_labels = predicted_labels.astype(int).copy()
+                for k, occ in enumerate(occupied_idxs):
+                    final_labels[occ] = 2 if whites[k] else 1
+
+                predicted_labels = final_labels
+                predictions = predicted_labels.copy()
 
         match(self.process_type):
             case 0:
