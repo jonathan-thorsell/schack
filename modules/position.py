@@ -25,25 +25,41 @@ initial_position = [
     1, 1, 1, 1, 1, 1, 1, 1
 ]
 
+last_image = None
 def add_to_training_set(square_image, square_color):
-        def save_image(key):
-            dir = f"training/data/testing/{ord_labels[key]}"
-            file_name = f"{square_color}_{secrets.token_hex(12)}.jpg"
-            cv2.imwrite(os.path.join(dir, file_name), square_image)
-            print(f"Piece identified as {ord_labels[key]} and saved to {file_name}")
-        
-        shown_image = cv2.resize(square_image, (500, 500))
+    global last_image
+    def save_image(key):
+        dir = f"training/data/testing/{ord_labels[key]}"
+        file_name = f"{square_color}_{secrets.token_hex(12)}.jpg"
+        cv2.imwrite(os.path.join(dir, file_name), square_image)
+        print(f"Piece identified as {ord_labels[key]} and saved to {file_name}")
+        return (ord_labels[key], file_name, square_image, square_color)
+    shown_image = cv2.resize(square_image, (500, 500))
 
-        cv2.imshow("W / WHITE | B / BLACK | E / EMPTY", shown_image)
-        key = cv2.waitKey(0) & 0xFF
-        if key == ord('w'):
-            save_image('w')
-        elif key == ord('b'):
-            save_image('b')
-        elif key == ord('e'):
-            save_image('e')
-        cv2.destroyWindow("W / WHITE | B / BLACK | E / EMPTY")
-
+    cv2.imshow("W / WHITE | B / BLACK | E / EMPTY | R / GO BACK", shown_image)
+    key = cv2.waitKey(0) & 0xFF
+    if key == ord('w'):
+        last_image = save_image('w')
+    elif key == ord('b'):
+        last_image = save_image('b')
+    elif key == ord('e'):
+        last_image = save_image('e')
+    elif key == ord('r') and last_image is not None:
+        label, file_name, square_image1, square_color1 = last_image
+        file_path = os.path.join("training", "data", "testing", label, file_name)
+        try:
+            os.remove(file_path)
+            print(f"Deleted {file_name} from {label}")
+        except FileNotFoundError:
+            print(f"File not found: {file_path}")
+        except Exception as e:
+            print(f"Failed to delete {file_path}: {e}")
+        last_image = None
+        print("Showing last image again.")
+        add_to_training_set(square_image1, square_color1)
+        add_to_training_set(square_image, square_color)
+        return
+    cv2.destroyWindow("W / WHITE | B / BLACK | E / EMPTY | R / GO BACK")
 
 class Position:
     def __init__(self, path, process_type):
@@ -118,24 +134,23 @@ class Position:
         occupied_squares = [i for i, label in enumerate(predicted_labels) if label == 1]
         if len(occupied_squares) > 0:
             # determine color for occupied squares and convert labels to 0=empty, 1=black, 2=white
-            occupied_idxs = [i for i, label in enumerate(predicted_labels) if label == 1]
-            if len(occupied_idxs) > 0:
-                occupied_images = npsquares[occupied_idxs]
-                color_preds = self.color_model.predict(occupied_images, verbose = 1 if debug else 0)
+            occupied_idxs = occupied_squares  # indices are relative to processed arrays
+            occupied_images = npsquares[occupied_idxs]
+            color_preds = self.color_model.predict(occupied_images, verbose = 1 if debug else 0)
 
-                # Handle both single-output (sigmoid) and two-output (softmax) models
-                if color_preds.ndim == 1 or (hasattr(color_preds, "shape") and color_preds.shape[1] == 1):
-                    whites = (color_preds.flatten() > 0.5)
-                else:
-                    whites = np.argmax(color_preds, axis=1) == 1
+            # Handle both single-output (sigmoid -> shape (n,1) or (n,)) and two-output (softmax -> shape (n,2)) models
+            if color_preds.ndim == 1 or (hasattr(color_preds, "shape") and color_preds.shape[1] == 1):
+                whites = color_preds.reshape(-1) > 0.5
+            else:
+                whites = np.argmax(color_preds, axis=1) == 1
 
-                # Build final integer labels: 0 empty, 1 black, 2 white
-                final_labels = predicted_labels.astype(int).copy()
-                for k, occ in enumerate(occupied_idxs):
-                    final_labels[occ] = 2 if whites[k] else 1
+            # Build final integer labels: 0 empty, 1 black, 2 white
+            final_labels = predicted_labels.astype(int).copy()
+            for k, occ in enumerate(occupied_idxs):
+                final_labels[occ] = 2 if whites[k] else 1
 
-                predicted_labels = final_labels
-                predictions = predicted_labels.copy()
+            predicted_labels = final_labels
+            predictions = np.array(final_labels)
 
         match(self.process_type):
             case 0:
